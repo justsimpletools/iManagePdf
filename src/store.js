@@ -14,6 +14,16 @@ const getType = (name) => {
 export const useConverterStore = create((set) => ({
   files: [],
   isConverting: false,
+  watermark: {
+    enabled: false,
+    text: 'CONFIDENTIAL',
+    position: 'center',
+    opacity: 35,
+    size: 28,
+  },
+  setWatermark: (changes) => set((state) => ({
+    watermark: { ...state.watermark, ...changes },
+  })),
   addFiles: (fileList) => set((state) => ({
     files: [
       ...state.files,

@@ -13,3 +13,6 @@ button:disabled { cursor: not-allowed; }
 .hero-grid { background-color: #0a1530; background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 56px 56px; }
 .hero-grid::after { content: ''; pointer-events: none; position: absolute; inset: 0; background: radial-gradient(circle at 50% 20%, rgba(86,69,212,.2), transparent 44%); }
 .upload-zone { background-image: radial-gradient(#e9e7e2 .8px, transparent .8px); background-size: 14px 14px; }
+.watermark-position-top { top: 8px; }
+.watermark-position-center { top: 50%; transform: translateY(-50%); }
+.watermark-position-bottom { bottom: 8px; }

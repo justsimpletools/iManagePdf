@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import {
   ArrowRight, Check, ChevronDown, CloudUpload, Download, FileSpreadsheet, FileText,
-  FileUp, FileType2, Github, Info, Menu, Plus, ShieldCheck, Sparkles, X, Zap,
+  FileUp, FileType2, Github, Info, Menu, Plus, ShieldCheck, SlidersHorizontal, Sparkles, X, Zap,
 } from 'lucide-react'
 import { formats, useConverterStore } from './store'
 
@@ -25,7 +25,7 @@ function Logo() {
 function App() {
   const inputRef = useRef(null)
   const [dragging, setDragging] = useState(false)
-  const { files, isConverting, addFiles, removeFile, clearFiles, convertFiles } = useConverterStore()
+  const { files, isConverting, watermark, setWatermark, addFiles, removeFile, clearFiles, convertFiles } = useConverterStore()
 
   const handleFiles = (selectedFiles) => addFiles(selectedFiles)
   const onDrop = (event) => {
@@ -79,12 +79,13 @@ function App() {
           <p className="mt-5 text-[11px] text-[#a4a097]">DOC, DOCX, XLS, XLSX, PPT, PPTX · Up to 50 MB per file</p>
         </div>
         {files.length > 0 && <div className="mt-3 space-y-2 border-t border-[#ede9e4] pt-4">
+          <WatermarkPanel watermark={watermark} setWatermark={setWatermark} />
           {files.map((item) => {
             const Icon = iconForType(item.type)
             const meta = formats[item.type]
             return <div className="flex items-center gap-3 rounded-lg bg-[#fafaf9] px-3 py-3" key={item.id}>
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg" style={{ backgroundColor: meta.bg, color: meta.color }}><Icon size={20} /></span>
-              <div className="min-w-0 flex-1 text-left"><p className="truncate text-[13px] font-medium">{item.file.name}</p><p className="mt-0.5 text-[11px] text-[#a4a097]">{formatBytes(item.file.size)} · {meta.label} {item.status === 'converted' ? '· Ready to download' : ''}</p></div>
+              <div className="min-w-0 flex-1 text-left"><p className="truncate text-[13px] font-medium">{item.file.name}</p><p className="mt-0.5 text-[11px] text-[#a4a097]">{formatBytes(item.file.size)} · {meta.label} {item.status === 'converted' ? `· ${watermark.enabled ? 'Watermarked · ' : ''}Ready to download` : ''}</p></div>
               {item.status === 'converted' ? <button className="flex items-center gap-1.5 rounded-md bg-[#e7f6ed] px-3 py-2 text-[12px] font-semibold text-[#17834b]"><Download size={14} /> PDF</button> : <button onClick={() => removeFile(item.id)} className="rounded-md p-2 text-[#a4a097] hover:bg-[#f0eeec] hover:text-[#37352f]" aria-label={`Remove ${item.file.name}`}><X size={16} /></button>}
             </div>
           })}
@@ -110,6 +111,48 @@ function App() {
       </section>
     </main>
     <footer className="border-t border-[#e5e3df] bg-white"><div className="mx-auto flex max-w-[1180px] flex-col items-center justify-between gap-4 px-6 py-7 text-[12px] text-[#a4a097] sm:flex-row lg:px-8"><Logo /><span>© 2025 Paperform. Built for better work.</span><a className="flex items-center gap-1.5 hover:text-[#5645d4]" href="#privacy"><Github size={14} /> Open source spirit</a></div></footer>
+  </div>
+}
+
+function WatermarkPanel({ watermark, setWatermark }) {
+  const positionLabels = { top: 'Top', center: 'Center', bottom: 'Bottom' }
+  return <div className="rounded-xl border border-[#e5e3df] bg-[#fafaf9] p-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#e6e0f5] text-[#5645d4]"><SlidersHorizontal size={17} /></span>
+        <div><h3 className="text-[13px] font-semibold">Add a watermark</h3><p className="mt-1 text-[11px] leading-5 text-[#787671]">Apply a light text overlay to each converted PDF.</p></div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={watermark.enabled}
+        aria-label="Toggle watermark"
+        onClick={() => setWatermark({ enabled: !watermark.enabled })}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${watermark.enabled ? 'bg-[#5645d4]' : 'bg-[#c8c4be]'}`}
+      >
+        <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${watermark.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+      </button>
+    </div>
+    {watermark.enabled && <div className="mt-4 grid gap-4 border-t border-[#e5e3df] pt-4 sm:grid-cols-[1.4fr_1fr_1fr]">
+      <label className="text-[11px] font-medium text-[#5d5b54]">Watermark text
+        <input value={watermark.text} maxLength={40} onChange={(event) => setWatermark({ text: event.target.value })} className="mt-1.5 h-9 w-full rounded-md border border-[#c8c4be] bg-white px-3 text-[12px] outline-none focus:border-[#5645d4] focus:ring-2 focus:ring-[#e6e0f5]" placeholder="e.g. CONFIDENTIAL" />
+      </label>
+      <label className="text-[11px] font-medium text-[#5d5b54]">Position
+        <select value={watermark.position} onChange={(event) => setWatermark({ position: event.target.value })} className="mt-1.5 h-9 w-full rounded-md border border-[#c8c4be] bg-white px-2 text-[12px] outline-none focus:border-[#5645d4]">
+          {Object.entries(positionLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+        </select>
+      </label>
+      <label className="text-[11px] font-medium text-[#5d5b54]">Opacity · {watermark.opacity}%
+        <input type="range" min="10" max="80" step="5" value={watermark.opacity} onChange={(event) => setWatermark({ opacity: Number(event.target.value) })} className="mt-3 w-full accent-[#5645d4]" />
+      </label>
+      <label className="text-[11px] font-medium text-[#5d5b54]">Size · {watermark.size}px
+        <input type="range" min="14" max="48" step="2" value={watermark.size} onChange={(event) => setWatermark({ size: Number(event.target.value) })} className="mt-3 w-full accent-[#5645d4]" />
+      </label>
+      <div className="watermark-preview relative flex h-16 items-center justify-center overflow-hidden rounded-md border border-[#e5e3df] bg-white sm:col-span-3" aria-label="Watermark preview">
+        <span className={`watermark-position-${watermark.position} absolute text-[#0a1530]`} style={{ opacity: watermark.opacity / 100, fontSize: `${watermark.size}px` }}>{watermark.text || 'YOUR TEXT'}</span>
+        <span className="text-[10px] text-[#c8c4be]">PDF preview</span>
+      </div>
+    </div>}
   </div>
 }
 
